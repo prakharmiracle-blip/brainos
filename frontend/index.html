@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrainOS — Personal Memory Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:      #faf8f4;
+    --bg2:     #f5f1ea;
+    --bg3:     #ece6d8;
+    --surface: #ffffff;
+    --sf2:     #fdfcfa;
+    --accent:  #1a6b4a;
+    --acc2:    #0f4a33;
+    --acc-lt:  #e8f4ee;
+    --acc-md:  #b8ddc9;
+    --coral:   #c0432a;
+    --cor-lt:  #faecea;
+    --amber:   #9a6220;
+    --amb-lt:  #fdf3e3;
+    --sky:     #1d5fa0;
+    --sky-lt:  #e6f0fb;
+    --ink:     #1a1814;
+    --ink2:    #46423c;
+    --ink3:    #8a8178;
+    --ink4:    #b8b2a8;
+    --bdr:     rgba(26,24,20,0.08);
+    --bdr2:    rgba(26,24,20,0.14);
+    --bdr3:    rgba(26,24,20,0.22);
+    --shsm:    0 1px 3px rgba(26,24,20,0.06),0 1px 2px rgba(26,24,20,0.04);
+    --sh:      0 4px 16px rgba(26,24,20,0.08),0 1px 4px rgba(26,24,20,0.04);
+    --shlg:    0 12px 40px rgba(26,24,20,0.10),0 4px 12px rgba(26,24,20,0.06);
+    --serif:   'Instrument Serif',Georgia,serif;
+    --sans:    'Geist',sans-serif;
+    --mono:    'Geist Mono',monospace;
+    --r:12px; --rsm:8px; --rlg:18px; --rxl:24px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;line-height:1.6;min-height:100vh;overflow-x:hidden}
+  ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bdr3);border-radius:2px}
+
+  /* ─ App ─ */
+  .app{display:flex;min-height:100vh}
+
+  /* ─ Sidebar ─ */
+  .sidebar{width:66px;background:var(--surface);border-right:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;padding:20px 0;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;box-shadow:var(--shsm)}
+  .sidebar.exp{width:226px}
+  .sb-logo{width:38px;height:38px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:28px;cursor:pointer;box-shadow:0 2px 8px rgba(26,107,74,.28);transition:transform .2s,box-shadow .2s}
+  .sb-logo:hover{transform:scale(1.05);box-shadow:0 4px 14px rgba(26,107,74,.35)}
+  .nav-item{width:100%;display:flex;align-items:center;gap:14px;padding:10px 14px;cursor:pointer;border-radius:0;transition:all .15s;position:relative;color:var(--ink3);font-family:var(--sans);font-size:13.5px;font-weight:400;white-space:nowrap;background:none;border:none;text-align:left;letter-spacing:-.01em}
+  .nav-item:hover{background:var(--bg2);color:var(--ink)}
+  .nav-item.active{color:var(--accent);background:var(--acc-lt)}
+  .nav-item.active::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:2.5px;background:var(--accent);border-radius:0 2px 2px 0}
+  .ni{width:18px;height:18px;flex-shrink:0;stroke-width:1.6}
+  .nl{opacity:0;transition:opacity .2s}
+  .sidebar.exp .nl{opacity:1}
+  .sb-bot{margin-top:auto;width:100%}
+
+  /* ─ Main ─ */
+  .main{margin-left:66px;flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s cubic-bezier(.4,0,.2,1)}
+  .main.sbo{margin-left:226px}
+
+  /* ─ Topbar ─ */
+  .topbar{height:58px;border-bottom:1px solid var(--bdr);background:rgba(250,248,244,.92);backdrop-filter:blur(14px);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:90}
+  .tb-wm{font-family:var(--serif);font-size:18px;color:var(--ink);font-style:italic;letter-spacing:.01em}
+  .tb-sep{width:1px;height:18px;background:var(--bdr2)}
+  .tb-sub{font-size:12px;font-family:var(--mono);color:var(--ink4);letter-spacing:.03em}
+  .tb-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .url-in{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rsm);color:var(--ink3);font-family:var(--mono);font-size:11px;padding:5px 10px;width:196px;outline:none;transition:all .2s}
+  .url-in:focus{border-color:var(--bdr3);color:var(--ink);background:var(--surface);box-shadow:var(--shsm)}
+  .api-pill{display:flex;align-items:center;gap:6px;font-size:11.5px;font-family:var(--mono);color:var(--ink3);padding:5px 12px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:20px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--ink4);transition:all .3s;flex-shrink:0}
+  .dot.on{background:var(--accent);box-shadow:0 0 0 2.5px var(--acc-lt)}
+  .dot.err{background:var(--coral);box-shadow:0 0 0 2.5px var(--cor-lt)}
+
+  /* ─ Pages ─ */
+  .page{display:none;padding:28px 28px 52px;flex-direction:column;gap:22px}
+  .page.active{display:flex;animation:fu .28s ease}
+  @keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ─ Page heading ─ */
+  .ph{display:flex;align-items:baseline;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--bdr)}
+  .pt{font-family:var(--serif);font-size:27px;color:var(--ink);font-style:italic;letter-spacing:-.01em}
+  .pd{font-size:12px;font-family:var(--mono);color:var(--ink4)}
+
+  /* ─ Stat cards ─ */
+  .srow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .sc{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rlg);padding:18px 20px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shsm);transition:all .2s;position:relative;overflow:hidden}
+  .sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc-md),transparent);opacity:0;transition:opacity .3s}
+  .sc:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+  .sc:hover::after{opacity:1}
+  .sc.feat{background:linear-gradient(135deg,#edf7f1 0%,#f8fdf9 100%);border-color:var(--acc-md)}
+  .sc.feat::after{opacity:1;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+  .sl{font-size:10.5px;font-family:var(--mono);color:var(--ink4);letter-spacing:.08em;text-transform:uppercase}
+  .sv{font-family:var(--serif);font-size:30px;color:var(--ink);line-height:1.1;letter-spacing:-.02em}
+  .sc.feat .sv{color:var(--accent)}
+  .ss{font-size:11.5px;color:var(--ink4);font-family:var(--mono)}
+
+  /* ─ Panel ─ */
+  .panel{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rlg);padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shsm)}
+  .panel-t{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink2);display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+  .panel-ts{font-family:var(--serif);font-size:18px;color:var(--ink);font-style:italic}
+  .sec-hdr{display:flex;align-items:center;justify-content:space-between}
+  .deco{font-family:var(--serif);font-size:52px;color:var(--bg3);line-height:1;position:absolute;right:16px;top:10px;font-style:italic;user-select:none;pointer-events:none;letter-spacing:-.04em}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+
+  /* ─ Inputs ─ */
+  textarea,input[type=text],input[type=number],input[type=date]{width:100%;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rsm);color:var(--ink);font-family:var(--sans);font-size:13.5px;padding:10px 13px;outline:none;resize:vertical;transition:all .18s;font-weight:400}
+  textarea:focus,input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--acc-lt)}
+  textarea::placeholder,input::placeholder{color:var(--ink4)}
+
+  /* ─ Type tabs ─ */
+  .ttabs{display:flex;gap:4px;background:var(--bg3);border-radius:var(--rsm);padding:3px}
+  .ttab{flex:1;padding:6px 10px;border-radius:6px;font-size:11.5px;font-family:var(--mono);color:var(--ink3);cursor:pointer;background:none;border:none;transition:all .15s;text-align:center}
+  .ttab:hover{background:var(--bg2);color:var(--ink)}
+  .ttab.active{background:var(--surface);color:var(--accent);font-weight:500;box-shadow:var(--shsm)}
+
+  /* ─ Buttons ─ */
+  .btn{padding:9px 18px;border-radius:var(--rsm);font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;border:none;transition:all .18s;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.01em}
+  .btn-p{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(26,107,74,.22)}
+  .btn-p:hover{background:var(--acc2);box-shadow:0 3px 10px rgba(26,107,74,.28);transform:translateY(-1px)}
+  .btn-p:active{transform:translateY(0)}
+  .btn-p:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-g{background:var(--bg2);color:var(--ink2);border:1px solid var(--bdr2)}
+  .btn-g:hover{background:var(--bg3);border-color:var(--bdr3);color:var(--ink)}
+  .btn-sm{padding:5px 12px;font-size:12px}
+
+  /* ─ Badge ─ */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10.5px;font-family:var(--mono);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+  .b-text {background:var(--sky-lt);color:var(--sky)}
+  .b-voice{background:var(--acc-lt);color:var(--accent)}
+  .b-url  {background:var(--amb-lt);color:var(--amber)}
+  .b-pdf  {background:var(--cor-lt);color:var(--coral)}
+
+  /* ─ File drop ─ */
+  .fdrop{border:1.5px dashed var(--bdr3);border-radius:var(--rlg);padding:30px 24px;text-align:center;cursor:pointer;transition:all .2s;color:var(--ink3);background:var(--bg2)}
+  .fdrop:hover,.fdrop.dov{border-color:var(--accent);background:var(--acc-lt);color:var(--accent)}
+  .fdrop input{display:none}
+  .fdi{font-size:28px;margin-bottom:10px;display:block}
+  .fdt{font-size:13px;font-weight:500;margin-bottom:4px}
+  .fdh{font-size:11px;font-family:var(--mono);color:var(--ink4)}
+
+  /* ─ Toast ─ */
+  .tc{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+  .toast{background:var(--surface);border:1px solid var(--bdr2);border-radius:var(--r);padding:11px 16px;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:10px;min-width:250px;box-shadow:var(--sh);animation:tin .25s ease;font-family:var(--sans)}
+  .toast.success{border-left:3px solid var(--accent)}
+  .toast.error  {border-left:3px solid var(--coral)}
+  .toast.info   {border-left:3px solid var(--sky)}
+  .tic{font-size:14px;flex-shrink:0}
+  @keyframes tin{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  /* ─ Chat ─ */
+  .chat-wrap{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rlg);box-shadow:var(--shsm);overflow:hidden;display:flex;flex-direction:column}
+  .chat-hdr{padding:16px 20px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg2)}
+  .chat-hist{display:flex;flex-direction:column;gap:14px;padding:20px;max-height:440px;overflow-y:auto}
+  .cmsg{display:flex;gap:10px;align-items:flex-start}
+  .cmsg.user{flex-direction:row-reverse}
+  .cav{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+  .cmsg.user .cav{background:var(--accent);color:#fff}
+  .cmsg.brain .cav{background:var(--bg3);border:1px solid var(--bdr2);font-size:14px}
+  .cbub{max-width:72%;padding:10px 14px;font-size:13.5px;line-height:1.65;border-radius:var(--rlg)}
+  .cmsg.user .cbub{background:var(--accent);color:#fff;border-radius:var(--rlg) var(--rsm) var(--rlg) var(--rlg)}
+  .cmsg.brain .cbub{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rsm) var(--rlg) var(--rlg) var(--rlg);color:var(--ink)}
+  .csrcs{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+  .schip{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--bdr2);border-radius:4px;padding:2px 8px;font-size:10.5px;font-family:var(--mono);color:var(--ink4)}
+  .sdot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0}
+  .chat-ft{padding:14px 16px;border-top:1px solid var(--bdr);background:var(--bg2);display:flex;gap:10px;align-items:flex-end}
+  .chat-ft textarea{flex:1;resize:none;min-height:40px;max-height:110px;background:var(--surface)}
+  .typing{display:flex;align-items:center;gap:4px;padding:10px 14px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rsm) var(--rlg) var(--rlg) var(--rlg);width:fit-content}
+  .td{width:5px;height:5px;border-radius:50%;background:var(--ink4);animation:tp 1.2s ease-in-out infinite}
+  .td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+  @keyframes tp{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
+  /* ─ Memory feed ─ */
+  .mfeed{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto}
+  .mi{background:var(--sf2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:flex-start;transition:all .15s}
+  .mi:hover{border-color:var(--bdr2);box-shadow:var(--shsm)}
+  .mc{flex:1;min-width:0}
+  .mt{font-size:13px;color:var(--ink2);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .mm{font-size:11px;color:var(--ink4);font-family:var(--mono);margin-top:5px}
+
+  /* ─ Summary ─ */
+  .si{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);font-size:13.5px;color:var(--ink2);line-height:1.55;transition:border-color .15s}
+  .si:hover{border-color:var(--bdr2)}
+  .sm{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+  .ins .sm{background:var(--accent)}
+  .lrn .sm{background:var(--sky)}
+  .nts .sm{background:var(--amber)}
+
+  /* ─ Log lines ─ */
+  .ll{font-family:var(--mono);font-size:11.5px;padding:6px 10px;border-radius:var(--rsm);background:var(--bg2);border-left:2.5px solid var(--bdr3);color:var(--ink3)}
+  .ll.s{border-left-color:var(--accent);color:var(--acc2)}
+  .ll.e{border-left-color:var(--coral);color:var(--coral)}
+  .ll.w{border-left-color:var(--amber);color:var(--amber)}
+
+  /* ─ Spinner ─ */
+  .spin{width:16px;height:16px;border:2px solid var(--acc-md);border-top-color:var(--accent);border-radius:50%;animation:sp .65s linear infinite;flex-shrink:0}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ─ Empty ─ */
+  .empty{text-align:center;padding:44px 20px;color:var(--ink4)}
+  .ei{font-size:30px;margin-bottom:12px;display:block;opacity:.55}
+  .empty p{font-size:13px;font-family:var(--mono)}
+
+  /* ─ Tag filter ─ */
+  .tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:11.5px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--bdr2);color:var(--ink3);cursor:pointer;transition:all .14s}
+  .tag:hover{border-color:var(--bdr3);color:var(--ink)}
+  .tag.act{background:var(--acc-lt);border-color:var(--acc-md);color:var(--accent)}
+
+  /* ─ Info rows ─ */
+  .ir{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bdr);font-size:13px}
+  .ir:last-child{border-bottom:none}
+  .ik{font-family:var(--mono);font-size:11.5px;color:var(--ink4)}
+  .iv{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+
+  /* ─ Answer box ─ */
+  .abox{background:var(--bg2);border:1px solid var(--bdr2);border-left:3px solid var(--accent);border-radius:var(--rsm);padding:12px 14px;font-size:13.5px;color:var(--ink);line-height:1.65;max-height:180px;overflow-y:auto;display:none}
+
+  /* ─ File selected ─ */
+  .fsel{display:none;font-size:12px;font-family:var(--mono);color:var(--accent);padding:7px 12px;background:var(--acc-lt);border:1px solid var(--acc-md);border-radius:var(--rsm)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sb">
+  <div class="sb-logo" onclick="tgl()" title="Toggle menu">
+    <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+      <path d="M12 3C8.8 3 6.5 5.4 6.5 8.6c0 1.9.9 3.4 2.2 4.4-1.4 1-2.2 2.8-2.2 4.8h11c0-2-.8-3.8-2.2-4.8 1.3-1 2.2-2.5 2.2-4.4C17.5 5.4 15.2 3 12 3z" fill="white"/>
+      <circle cx="9.5" cy="8.5" r="1.2" fill="rgba(0,0,0,.25)"/>
+      <circle cx="14.5" cy="8.5" r="1.2" fill="rgba(0,0,0,.25)"/>
+      <line x1="9" y1="14.5" x2="15" y2="14.5" stroke="rgba(0,0,0,.2)" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <button class="nav-item active" onclick="sp('dashboard',this)">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span class="nl">Dashboard</span>
+  </button>
+  <button class="nav-item" onclick="sp('ingest',this)">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span class="nl">Ingest</span>
+  </button>
+  <button class="nav-item" onclick="sp('chat',this)">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="nl">Brain Chat</span>
+  </button>
+  <button class="nav-item" onclick="sp('memory',this)">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="12" rx="10" ry="5.5"/><path d="M2 12c0 3 4.5 5.5 10 5.5S22 15 22 12"/><path d="M2 7c0-3 4.5-5.5 10-5.5S22 4 22 7"/></svg>
+    <span class="nl">Memory</span>
+  </button>
+  <button class="nav-item" onclick="sp('summary',this)">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span class="nl">Summary</span>
+  </button>
+  <div class="sb-bot">
+    <button class="nav-item" onclick="sp('settings',this)">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nl">Settings</span>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="main">
+
+<!-- Topbar -->
+<div class="topbar">
+  <span class="tb-wm">BrainOS</span>
+  <div class="tb-sep"></div>
+  <span class="tb-sub">personal memory intelligence</span>
+  <div class="tb-r">
+    <input class="url-in" type="text" id="baseUrl" value="http://localhost:8000" placeholder="API base URL" />
+    <div class="api-pill"><div class="dot" id="dot"></div><span id="stxt">offline</span></div>
+    <button class="btn btn-g btn-sm" onclick="health()">ping</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="ph"><span class="pt">Dashboard</span><span class="pd">overview of your personal knowledge base</span></div>
+  <div class="srow">
+    <div class="sc feat"><div class="sl">memory chunks</div><div class="sv" id="s-chunks">—</div><div class="ss">stored vectors</div></div>
+    <div class="sc"><div class="sl">llm provider</div><div class="sv" id="s-llm" style="font-size:20px;padding-top:6px">—</div><div class="ss" id="s-llm-m">not connected</div></div>
+    <div class="sc"><div class="sl">embedding model</div><div class="sv" id="s-emb" style="font-size:13px;font-family:var(--mono);padding-top:10px;letter-spacing:0">—</div><div class="ss">local inference</div></div>
+    <div class="sc"><div class="sl">voice model</div><div class="sv" id="s-wh" style="font-size:20px;padding-top:6px">—</div><div class="ss">whisper</div></div>
+  </div>
+  <div class="two-col">
+    <div class="panel" style="position:relative">
+      <div class="deco">✎</div>
+      <div class="sec-hdr"><span class="panel-t">Quick Capture</span></div>
+      <textarea id="q-text" placeholder="A thought, idea, URL, or meeting note…" rows="4"></textarea>
+      <div class="ttabs">
+        <button class="ttab active" data-type="text" onclick="qtype(this)">text</button>
+        <button class="ttab" data-type="url" onclick="qtype(this)">url</button>
+      </div>
+      <button class="btn btn-p" onclick="qingest()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        Save to Memory
+      </button>
+    </div>
+    <div class="panel" style="position:relative">
+      <div class="deco">?</div>
+      <div class="sec-hdr"><span class="panel-t">Quick Ask</span></div>
+      <input type="text" id="q-query" placeholder="What did I learn about…?" onkeydown="if(event.key==='Enter')qask()" />
+      <div class="abox" id="q-ans"></div>
+      <button class="btn btn-p" onclick="qask()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Ask Brain
+      </button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="sec-hdr">
+      <span class="panel-ts">Recent memories</span>
+      <button class="btn btn-g btn-sm" onclick="loadRecent()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        refresh
+      </button>
+    </div>
+    <div class="mfeed" id="r-feed"><div class="empty"><span class="ei">🧠</span><p>No memories yet — ingest your first note!</p></div></div>
+  </div>
+</div>
+
+<!-- INGEST -->
+<div class="page" id="page-ingest">
+  <div class="ph"><span class="pt">Ingest</span><span class="pd">add knowledge to your brain</span></div>
+  <div class="three-col">
+    <div class="panel">
+      <div class="panel-t"><span class="badge b-text">text</span> Plain Note</div>
+      <textarea id="i-text" placeholder="Type or paste your note, ideas, meeting minutes…" rows="7"></textarea>
+      <input type="text" id="i-src" placeholder="Source label (optional)" />
+      <button class="btn btn-p" onclick="ingText()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        Ingest Note
+      </button>
+    </div>
+    <div class="panel">
+      <div class="panel-t"><span class="badge b-url">url</span> Webpage</div>
+      <input type="text" id="i-url" placeholder="https://…" />
+      <div style="font-size:13px;color:var(--ink4);line-height:1.6;padding:12px;background:var(--bg2);border-radius:var(--rsm);border:1px solid var(--bdr);flex:1">
+        BrainOS fetches the page, strips noise, chunks content and stores embeddings — automatically.
+      </div>
+      <button class="btn btn-p" onclick="ingUrl()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Fetch & Ingest
+      </button>
+    </div>
+    <div class="panel">
+      <div class="panel-t"><span class="badge b-pdf" id="fbadge">pdf</span> File Upload</div>
+      <div class="ttabs">
+        <button class="ttab active" data-ftype="pdf" onclick="setFT(this)">PDF</button>
+        <button class="ttab" data-ftype="voice" onclick="setFT(this)">Voice</button>
+      </div>
+      <div class="fdrop" id="fdrop" onclick="document.getElementById('fin').click()" ondragover="event.preventDefault();this.classList.add('dov')" ondragleave="this.classList.remove('dov')" ondrop="dropF(event)">
+        <input type="file" id="fin" accept=".pdf" onchange="selF(event)" />
+        <span class="fdi" id="fdico">📄</span>
+        <div class="fdt">Drop file or click to browse</div>
+        <div class="fdh" id="fhint">PDF documents</div>
+      </div>
+      <div class="fsel" id="fsel"></div>
+      <button class="btn btn-p" id="fubtn" onclick="upFile()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload & Process
+      </button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="sec-hdr">
+      <span class="panel-ts">Activity log</span>
+      <button class="btn btn-g btn-sm" onclick="document.getElementById('ilog').innerHTML=''">clear</button>
+    </div>
+    <div id="ilog" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto">
+      <div class="ll">// Activity will appear here</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="page" id="page-chat">
+  <div class="ph"><span class="pt">Brain Chat</span><span class="pd">RAG — answers from your memories only</span></div>
+  <div class="chat-wrap">
+    <div class="chat-hdr">
+      <span class="panel-t">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Conversation
+      </span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:12px;color:var(--ink4);font-family:var(--mono)">top_k</span>
+        <input type="number" id="topk" value="5" min="1" max="20" style="width:52px;padding:4px 8px;font-size:12px;background:var(--bg3);" />
+        <button class="btn btn-g btn-sm" onclick="clrChat()">clear</button>
+      </div>
+    </div>
+    <div class="chat-hist" id="chat-hist">
+      <div class="cmsg brain">
+        <div class="cav">🧠</div>
+        <div class="cbub">
+          Hello — I'm your BrainOS. Ask me anything and I'll search your stored memories to answer.
+          <br><br>
+          <span style="font-size:12px;color:var(--ink4)">Try: "What did I learn about X?" · "Summarise my notes on Y" · "What tasks are pending?"</span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-ft">
+      <textarea id="c-in" placeholder="Ask your brain something…" rows="2" onkeydown="ck(event)"></textarea>
+      <button class="btn btn-p" id="csend" onclick="send()" style="padding:10px 14px;height:40px;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMORY -->
+<div class="page" id="page-memory">
+  <div class="ph"><span class="pt">Memory Store</span><span class="pd">browse everything your brain knows</span></div>
+  <div class="panel">
+    <div class="sec-hdr" style="flex-wrap:wrap;gap:10px">
+      <span class="panel-ts">Stored chunks</span>
+      <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+        <input type="number" id="mcnt" value="20" min="1" max="200" style="width:68px;padding:5px 8px;font-size:13px;" />
+        <button class="btn btn-p btn-sm" onclick="loadMem()">Load</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="mfilts">
+      <span class="tag act" onclick="fmem('all',this)">all</span>
+      <span class="tag" onclick="fmem('text',this)">text</span>
+      <span class="tag" onclick="fmem('voice',this)">voice</span>
+      <span class="tag" onclick="fmem('url',this)">url</span>
+      <span class="tag" onclick="fmem('pdf',this)">pdf</span>
+    </div>
+    <div class="mfeed" id="m-feed"><div class="empty"><span class="ei">💾</span><p>Click Load to browse stored chunks.</p></div></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="page" id="page-summary">
+  <div class="ph"><span class="pt">Daily Summary</span><span class="pd">structured insights from your memories</span></div>
+  <div class="panel" style="flex-direction:row;align-items:center;gap:14px;flex-wrap:wrap">
+    <span class="panel-t">Generate for date</span>
+    <input type="date" id="s-date" style="flex:1;min-width:160px;max-width:210px;font-family:var(--mono);font-size:13px;" />
+    <button class="btn btn-p" onclick="genSum()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Generate Summary
+    </button>
+  </div>
+  <div id="s-load" style="display:none;text-align:center;padding:48px;color:var(--ink4)">
+    <div style="display:inline-flex;align-items:center;gap:12px">
+      <div class="spin"></div>
+      <span style="font-family:var(--mono);font-size:13px">generating daily intelligence…</span>
+    </div>
+  </div>
+  <div id="s-out" style="display:none">
+    <div class="three-col">
+      <div class="panel">
+        <div class="panel-ts" style="margin-bottom:4px">Insights</div>
+        <div style="display:flex;flex-direction:column;gap:8px" class="ins" id="s-ins"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-ts" style="margin-bottom:4px">Key Learnings</div>
+        <div style="display:flex;flex-direction:column;gap:8px" class="lrn" id="s-lrn"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-ts" style="margin-bottom:4px">Important Notes</div>
+        <div style="display:flex;flex-direction:column;gap:8px" class="nts" id="s-nts"></div>
+      </div>
+    </div>
+  </div>
+  <div id="s-emp" class="panel">
+    <div class="empty"><span class="ei">📋</span><p>Pick a date and click Generate.</p></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="ph"><span class="pt">Settings</span><span class="pd">configure your connection</span></div>
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-ts">API Configuration</div>
+      <div>
+        <div style="font-size:11.5px;font-family:var(--mono);color:var(--ink4);margin-bottom:6px">Base URL</div>
+        <input type="text" id="set-url" placeholder="http://localhost:8000" />
+      </div>
+      <button class="btn btn-p" onclick="saveSets()">Save & Reconnect</button>
+      <div id="set-res" style="font-size:12px;font-family:var(--mono);color:var(--ink4)"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-ts">System Info</div>
+      <div id="sys-info">
+        <div class="ir"><span class="ik">status</span><span class="iv" style="color:var(--ink4)">not connected</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<div class="tc" id="tc"></div>
+
+<script>
+let allMem=[],curFilt='all',curFT='pdf',selFile=null,qT='text';
+
+window.onload=()=>{
+  document.getElementById('s-date').value=new Date().toISOString().split('T')[0];
+  health(); loadRecent();
+};
+
+const bu=()=>document.getElementById('baseUrl').value.replace(/\/$/,'');
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+async function req(method,path,body,isForm){
+  const o={method};
+  if(body&&!isForm){o.headers={'Content-Type':'application/json'};o.body=JSON.stringify(body);}
+  else if(isForm){o.body=body;}
+  const r=await fetch(bu()+path,o);
+  if(!r.ok){const e=await r.json().catch(()=>({detail:r.statusText}));throw new Error(e.detail||r.statusText);}
+  return r.json();
+}
+
+function tgl(){document.getElementById('sb').classList.toggle('exp');document.getElementById('main').classList.toggle('sbo');}
+function sp(n,b){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');if(b)b.classList.add('active');}
+
+function toast(msg,type='info'){
+  const ic={success:'✓',error:'✗',info:'·',warn:'!'};
+  const c=document.getElementById('tc');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span class="tic">${ic[type]||'·'}</span><span>${esc(msg)}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.cssText='opacity:0;transform:translateX(16px);transition:all .3s';setTimeout(()=>t.remove(),300)},3200);
+}
+
+function lg(msg,type='i'){
+  const el=document.getElementById('ilog');
+  const d=document.createElement('div');
+  d.className='ll'+(type==='s'?' s':type==='e'?' e':type==='w'?' w':'');
+  d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.insertBefore(d,el.firstChild);
+}
+
+async function health(){
+  const d=document.getElementById('dot'),t=document.getElementById('stxt');
+  try{await req('GET','/health');d.className='dot on';t.textContent='connected';stats();}
+  catch{d.className='dot err';t.textContent='offline';}
+}
+
+async function stats(){
+  try{
+    const s=await req('GET','/stats');
+    document.getElementById('s-chunks').textContent=s.total_memory_chunks??'0';
+    document.getElementById('s-llm').textContent=s.llm_provider??'—';
+    document.getElementById('s-emb').textContent=(s.embedding_model??'—').split('/').pop();
+    document.getElementById('s-wh').textContent=s.whisper_model??'—';
+    document.getElementById('sys-info').innerHTML=[['LLM Provider',s.llm_provider],['Embedding Model',s.embedding_model],['Whisper Model',s.whisper_model],['Total Chunks',s.total_memory_chunks]].map(([k,v])=>`<div class="ir"><span class="ik">${k}</span><span class="iv">${v??'—'}</span></div>`).join('');
+  }catch{}
+}
+
+function qtype(b){document.querySelectorAll('#page-dashboard .ttab').forEach(t=>t.classList.remove('active'));b.classList.add('active');qT=b.dataset.type;}
+
+async function qingest(){
+  const c=document.getElementById('q-text').value.trim();
+  if(!c)return toast('Enter some content.','warn');
+  try{const d=await req('POST','/ingest',{content:c,input_type:qT});toast(`Saved ${d.chunks_stored} chunk(s)`,'success');document.getElementById('q-text').value='';loadRecent();stats();}
+  catch(e){toast(e.message,'error');}
+}
+
+async function qask(){
+  const q=document.getElementById('q-query').value.trim();if(!q)return;
+  const b=document.getElementById('q-ans');b.style.display='block';
+  b.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div class="spin"></div><span style="font-size:12px;color:var(--ink4);font-family:var(--mono)">searching…</span></div>';
+  try{const d=await req('POST','/ask',{query:q,top_k:3});b.textContent=d.answer;}
+  catch(e){b.style.color='var(--coral)';b.textContent=e.message;}
+}
+
+async function loadRecent(){
+  try{const d=await req('GET','/memory/recent?n=8');renderFeed(d.entries,'r-feed');}
+  catch(e){document.getElementById('r-feed').innerHTML=`<div class="empty"><p style="color:var(--coral)">${esc(e.message)}</p></div>`;}
+}
+
+function renderFeed(entries,id){
+  const f=document.getElementById(id);
+  if(!entries?.length){f.innerHTML='<div class="empty"><span class="ei">🧠</span><p>No memories yet — ingest your first note!</p></div>';return;}
+  const bc={text:'b-text',voice:'b-voice',url:'b-url',pdf:'b-pdf'};
+  f.innerHTML=entries.map(e=>{
+    const ts=(e.timestamp||'').slice(0,16).replace('T',' ');
+    const t=e.input_type||'text';
+    return `<div class="mi"><span class="badge ${bc[t]||'b-text'}" style="margin-top:2px">${t}</span><div class="mc"><div class="mt">${esc(e.content||'')}</div><div class="mm">${ts}${e.source?' · '+esc(e.source):''}</div></div></div>`;
+  }).join('');
+}
+
+async function ingText(){
+  const c=document.getElementById('i-text').value.trim(),s=document.getElementById('i-src').value.trim();
+  if(!c)return toast('Enter text.','warn');
+  lg(`Ingesting text (${c.length} chars)…`);
+  try{const d=await req('POST','/ingest',{content:c,input_type:'text',source:s});lg(`Stored ${d.chunks_stored} chunks.`,'s');toast(`Stored ${d.chunks_stored} chunks`,'success');document.getElementById('i-text').value='';stats();}
+  catch(e){lg(e.message,'e');toast(e.message,'error');}
+}
+
+async function ingUrl(){
+  const u=document.getElementById('i-url').value.trim();if(!u)return toast('Enter a URL.','warn');
+  lg(`Fetching: ${u}`);
+  try{const d=await req('POST','/ingest',{content:u,input_type:'url'});lg(`Stored ${d.chunks_stored} chunks.`,'s');toast(`Stored ${d.chunks_stored} chunks`,'success');document.getElementById('i-url').value='';stats();}
+  catch(e){lg(e.message,'e');toast(e.message,'error');}
+}
+
+function setFT(b){
+  document.querySelectorAll('#page-ingest .ttab').forEach(t=>t.classList.remove('active'));b.classList.add('active');
+  curFT=b.dataset.ftype;const ip=curFT==='pdf';
+  document.getElementById('fhint').textContent=ip?'PDF documents':'MP3, WAV, M4A, OGG, WEBM';
+  document.getElementById('fin').accept=ip?'.pdf':'.mp3,.wav,.m4a,.ogg,.webm';
+  document.getElementById('fdico').textContent=ip?'📄':'🎙️';
+  document.getElementById('fbadge').textContent=curFT;
+  document.getElementById('fbadge').className='badge '+(ip?'b-pdf':'b-voice');
+  selFile=null;document.getElementById('fsel').style.display='none';document.getElementById('fubtn').disabled=true;
+}
+
+function selF(e){selFile=e.target.files[0];showFS();}
+function dropF(e){e.preventDefault();document.getElementById('fdrop').classList.remove('dov');selFile=e.dataTransfer.files[0];showFS();}
+function showFS(){if(!selFile)return;const el=document.getElementById('fsel');el.style.display='block';el.textContent=`${selFile.name}  (${(selFile.size/1024).toFixed(1)} KB)`;document.getElementById('fubtn').disabled=false;}
+
+async function upFile(){
+  if(!selFile)return;
+  const f=new FormData();f.append('file',selFile);
+  const ep=curFT==='pdf'?'/ingest/pdf':'/ingest/voice';
+  lg(`Uploading ${selFile.name}…`);
+  try{const d=await req('POST',ep,f,true);lg(`Processed. ${d.chunks_stored} chunks.`,'s');toast(`${d.chunks_stored} chunks from ${curFT.toUpperCase()}`,'success');selFile=null;document.getElementById('fsel').style.display='none';document.getElementById('fubtn').disabled=true;document.getElementById('fin').value='';stats();}
+  catch(e){lg(e.message,'e');toast(e.message,'error');}
+}
+
+function ck(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
+
+async function send(){
+  const inp=document.getElementById('c-in'),q=inp.value.trim();if(!q)return;
+  const k=parseInt(document.getElementById('topk').value)||5;
+  inp.value='';addMsg(q,'user');
+  const tid='t'+Date.now();addTyping(tid);
+  document.getElementById('csend').disabled=true;
+  try{const d=await req('POST','/ask',{query:q,top_k:k});rmTyping(tid);addMsg(d.answer,'brain',d.sources);}
+  catch(e){rmTyping(tid);addMsg('Error: '+e.message,'brain');}
+  finally{document.getElementById('csend').disabled=false;inp.focus();}
+}
+
+function addMsg(text,role,srcs){
+  const h=document.getElementById('chat-hist'),d=document.createElement('div');
+  d.className='cmsg '+role;
+  let s='';
+  if(srcs?.length)s=`<div class="csrcs">${srcs.slice(0,3).map(x=>`<div class="schip"><div class="sdot"></div>${esc(x.input_type)} · ${(x.timestamp||'').slice(0,10)} · ${(x.score||0).toFixed(3)}</div>`).join('')}</div>`;
+  d.innerHTML=`<div class="cav">${role==='user'?'U':'🧠'}</div><div class="cbub">${esc(text)}${s}</div>`;
+  h.appendChild(d);h.scrollTop=h.scrollHeight;
+}
+
+function addTyping(id){
+  const h=document.getElementById('chat-hist'),d=document.createElement('div');
+  d.className='cmsg brain';d.id=id;
+  d.innerHTML='<div class="cav">🧠</div><div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  h.appendChild(d);h.scrollTop=h.scrollHeight;
+}
+
+function rmTyping(id){document.getElementById(id)?.remove();}
+function clrChat(){document.getElementById('chat-hist').innerHTML='<div class="cmsg brain"><div class="cav">🧠</div><div class="cbub">Chat cleared. What would you like to know?</div></div>';}
+
+async function loadMem(){
+  const n=parseInt(document.getElementById('mcnt').value)||20;
+  try{const d=await req('GET',`/memory/recent?n=${n}`);allMem=d.entries||[];applyFilt(curFilt);}
+  catch(e){toast(e.message,'error');}
+}
+
+function fmem(t,el){document.querySelectorAll('#mfilts .tag').forEach(x=>x.classList.remove('act'));el.classList.add('act');curFilt=t;applyFilt(t);}
+function applyFilt(t){const f=t==='all'?allMem:allMem.filter(m=>m.input_type===t);renderFeed(f,'m-feed');}
+
+async function genSum(){
+  const dt=document.getElementById('s-date').value;
+  document.getElementById('s-emp').style.display='none';
+  document.getElementById('s-out').style.display='none';
+  document.getElementById('s-load').style.display='block';
+  try{
+    const d=await req('GET','/summary'+(dt?`?target_date=${dt}`:''));
+    document.getElementById('s-load').style.display='none';
+    rsl(d.insights,'s-ins','ins');rsl(d.key_learnings,'s-lrn','lrn');rsl(d.important_notes,'s-nts','nts');
+    document.getElementById('s-out').style.display='block';
+  }catch(e){document.getElementById('s-load').style.display='none';document.getElementById('s-emp').style.display='block';toast(e.message,'error');}
+}
+
+function rsl(items,elId,cls){
+  const el=document.getElementById(elId);
+  if(!items?.length){el.innerHTML='<div class="si"><div class="sm"></div><span style="color:var(--ink4)">Nothing to show.</span></div>';return;}
+  el.innerHTML=items.map(i=>`<div class="si"><div class="sm"></div><span>${esc(i)}</span></div>`).join('');
+}
+
+async function saveSets(){
+  const u=document.getElementById('set-url').value.trim();
+  if(u)document.getElementById('baseUrl').value=u;
+  const r=document.getElementById('set-res');r.textContent='connecting…';r.style.color='var(--ink4)';
+  try{await health();r.textContent='✓ Connected';r.style.color='var(--accent)';}
+  catch{r.textContent='✗ Failed';r.style.color='var(--coral)';}
+}
+</script>
+</body>
+</html>
