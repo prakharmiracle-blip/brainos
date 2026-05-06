@@ -1,10 +1,12 @@
 FROM python:3.11-slim
+ENV PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y ffmpeg git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-RUN mkdir -p data/faiss_index data/uploads logs
+RUN mkdir -p data/faiss_index data/uploads/sources logs
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 EXPOSE 8000
-CMD uvicorn src.api.app:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD python ensure_dirs.py && uvicorn src.api.app:app --host 0.0.0.0 --port ${PORT:-8000}

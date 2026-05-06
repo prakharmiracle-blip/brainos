@@ -7,7 +7,7 @@ openai==1.30.0
 sentence-transformers==2.7.0
 
 # Vector DB
-faiss-cpu==1.13.2
+faiss-cpu==1.8.0
 
 # Audio / Voice
 # openai-whisper==20240930
@@ -21,7 +21,7 @@ requests==2.32.2
 pydantic==2.7.1
 pydantic-settings==2.2.1
 python-dotenv==1.0.1
-numpy>=2.0.0
+numpy==1.26.4
 aiofiles==23.2.1
 httpx==0.27.0
 
